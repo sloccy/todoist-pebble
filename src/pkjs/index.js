@@ -160,14 +160,18 @@ function getItems(selectedProjectID, state)
         }
 
         const isToday = selectedProjectID === 0 ? 1 : 0;
+        const isInbox = String(selectedProjectID) === localStorage.getItem("inboxProjectID");
 
-        //sort the list based on the item order property, if today, sort by date
-        if (isToday)
+        //sort the list based on the item order property, if today or inbox, sort by date
+        if (isToday || isInbox)
         {
-             items.sort((a, b) => {
-                 const d1 = parseTodoistDate(a.due);
-                 const d2 = parseTodoistDate(b.due);
-                 return d1 - d2;
+            items.sort((a, b) => {
+                const dA = a.due ? parseTodoistDate(a.due) : null;
+                const dB = b.due ? parseTodoistDate(b.due) : null;
+                if (dA === null && dB === null) return 0;
+                if (dA === null) return -1;
+                if (dB === null) return 1;
+                return dA - dB;
             });
         }
         else
@@ -210,7 +214,6 @@ function getItems(selectedProjectID, state)
         const watchVersion = getWatchVersion();
 
         //only put "Add New" if we are on modern watches and not in inbox (inbox has its own button on the main screen)
-        const isInbox = String(selectedProjectID) === localStorage.getItem("inboxProjectID");
         if (modernWatches.includes(watchVersion) && !isToday && !isInbox)
         {
             itemNames += "+ Add New |";
@@ -255,6 +258,14 @@ function getItems(selectedProjectID, state)
                 if (item.project_id !== selectedProjectID)
                 {
                     continue;
+                }
+
+                // For inbox: hide items due more than 31 days from now
+                if (isInbox && item.due !== null)
+                {
+                    const oneMonthFromNow = addDays(new Date(), 31);
+                    if (parseTodoistDate(item.due) > oneMonthFromNow)
+                        continue;
                 }
             }
 
