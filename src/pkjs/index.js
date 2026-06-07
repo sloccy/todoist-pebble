@@ -333,27 +333,35 @@ function getProjects(state)
         let projectNames = "";
         let projectIDs = "";
         let projectIndentation = "";
-        
-        //put today project in (custom)
-        projectNames = "Today |";
-        projectIDs = "0|";
-        projectIndentation = "1|";
-        
+
         //sort the list based on the item order property
         json.sort(function(a, b) {
             return parseInt(a.item_order) - parseInt(b.item_order);
         });
-        
+
+        // Extract inbox project so it can be placed first
+        const inboxIndex = json.findIndex(function(p) { return p.inbox_project; });
+        const inboxProject = inboxIndex >= 0 ? json.splice(inboxIndex, 1)[0] : null;
+
+        // Build list: Inbox first, Today second, then remaining projects
+        if (inboxProject) {
+            const inboxName = inboxProject.name.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').replace("|", "").trim();
+            projectNames = inboxName + " |Today |";
+            projectIDs = inboxProject.id + "|0|";
+            projectIndentation = "1|1|";
+            localStorage.setItem("inboxProjectID", inboxProject.id);
+        } else {
+            projectNames = "Today |";
+            projectIDs = "0|";
+            projectIndentation = "1|";
+        }
+
         for(let i=0;i<json.length;i++)
         {
-            projectNames = projectNames + json[i].name.replace("|", "")  + " |";
+            const cleanName = json[i].name.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').replace("|", "").trim();
+            projectNames = projectNames + cleanName + " |";
             projectIDs = projectIDs  + json[i].id + "|";
             projectIndentation = projectIndentation + getIndentLevel(json[i], json) + "|";
-
-            // Set inbox_project in localStorage if the project has inbox_project set to true
-            if (json[i].inbox_project && localStorage.getItem("inboxProjectID") === "" ) {
-                localStorage.setItem("inboxProjectID", json[i].id);
-            }
         }
     
         const dictionary = 

@@ -39,7 +39,15 @@
                     "file": "images/TodoistMiniLogo.png",
                     "menuIcon": true,
                     "name": "TODOIST_MINI_LOGO",
-                    "type": "bitmap"
+                    "type": "bitmap",
+                    "targetPlatforms": ["aplite"]
+                },
+                {
+                    "file": "images/TodoistMiniLogo.png",
+                    "menuIcon": true,
+                    "name": "TODOIST_MINI_LOGO",
+                    "type": "png",
+                    "targetPlatforms": ["basalt", "chalk", "diorite", "emery", "flint", "gabbro"]
                 }
             ]
         },
