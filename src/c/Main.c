@@ -76,6 +76,36 @@ void sendItemIDToPhone(int index)
     app_message_outbox_send();
 }
 
+void completion_animation_done(void* data)
+{
+    int row = (int)(intptr_t)data;
+    WindowData* wd = (WindowData*)window_get_user_data(window);
+    if (wd->items && row < wd->items->length)
+        removeItem(wd->items, row);
+    window_set_click_config_provider(window, (ClickConfigProvider) config_provider);
+    if (!wd->items || wd->items->length == 0)
+    {
+        app_timer_cancel(wd->textScrollTimer);
+        wd->currentScrollable = 0;
+        destroyItemList(wd->items);
+        wd->items = 0;
+        wd->currentPage = 1;
+        menu_layer_reload_data(myMenuLayer);
+        MenuIndex mi;
+        mi.row = 0;
+        mi.section = 0;
+        menu_layer_set_selected_index(myMenuLayer, mi, MenuRowAlignCenter, false);
+        wd->scrolledNumber = 0;
+        wd->textScrollTimer = app_timer_register(wd->config->scrollSpeed, timerTick, NULL);
+        return;
+    }
+    menu_layer_reload_data(myMenuLayer);
+    MenuIndex mi;
+    mi.section = 0;
+    mi.row = (row < wd->items->length) ? row : wd->items->length - 1;
+    menu_layer_set_selected_index(myMenuLayer, mi, MenuRowAlignCenter, false);
+}
+
 //draws a checkbox in the given cell layer of the menu
 void drawCheckbox(GContext *ctx, Layer *cell_layer, int index)
 {

@@ -20,3 +20,4 @@ ItemStruct* createItemList(char** items, char** itemIDs, char** itemDates, char*
 void destroyItemList(ItemStruct* is);
 void unSerializeItemsString(ItemStruct* itemList, char* itemNamesString, char* itemIDsString, char* itemDatesString, char* itemDueDatesString, char* itemIndentationString);
 void setChecked(ItemStruct* is, int index);
+void removeItem(ItemStruct* is, int index);

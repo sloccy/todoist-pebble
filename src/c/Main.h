@@ -27,3 +27,4 @@ void window_unload(Window *window);
 void init();
 void deinit();
 void scrollTextBackToStart();
+void completion_animation_done(void* data);

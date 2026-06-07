@@ -50,6 +50,28 @@ void destroyItemList(ItemStruct* is)
     free(is);
 }
 
+void removeItem(ItemStruct* is, int index)
+{
+    if (!is || index < 0 || index >= is->length)
+        return;
+    free(is->items[index]);
+    free(is->itemIDs[index]);
+    free(is->itemDates[index]);
+    free(is->itemDueDates[index]);
+    free(is->indentation[index]);
+    for (int i = index; i < is->length - 1; i++)
+    {
+        is->items[i] = is->items[i+1];
+        is->itemIDs[i] = is->itemIDs[i+1];
+        is->itemDates[i] = is->itemDates[i+1];
+        is->itemDueDates[i] = is->itemDueDates[i+1];
+        is->indentation[i] = is->indentation[i+1];
+        is->checked[i] = is->checked[i+1];
+        is->recurringTask[i] = is->recurringTask[i+1];
+    }
+    is->length--;
+}
+
 void unSerializeItemsString(ItemStruct* itemList, char* itemNamesString, char* itemIDsString, char* itemDatesString, char* itemDueDatesString, char* itemIndentationString)
 {
     itemList->items = splitString(itemNamesString, '|', &itemList->length);

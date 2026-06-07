@@ -86,14 +86,14 @@ void inbox_received_callback(DictionaryIterator *iterator, void *context)
                 strcpy(itemIndentationStr, t->value->cstring);
             break;
             case SELECTED_ITEM:
-                
+
                 if (strcmp(t->value->cstring,"1") == 0)
                 {
                     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
                     int currentRow = currentIndex.row;
                     wd->items->checked[currentRow] = 1;
-                    window_set_click_config_provider(window, (ClickConfigProvider) config_provider);
                     layer_mark_dirty(menu_layer_get_layer(myMenuLayer));
+                    app_timer_register(400, completion_animation_done, (void*)(intptr_t)currentRow);
                 }
                 else
                 {

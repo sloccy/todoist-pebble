@@ -71,6 +71,7 @@ void menu_select_callback(ClickRecognizerRef recognizer, void *context)
         currentRow--;
         #endif
 
+        if (currentRow >= wd->projects->length) return;
         wd->selectedProjectIndex = currentRow;
         sendProjectIDToPhone(currentRow);
         displayMessage("Loading...", 102);
@@ -124,7 +125,7 @@ void down_click_handler(ClickRecognizerRef recognizer, void *context)
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
-    if (currentIndex.row < getLengthOfCurrentPage())
+    if (currentIndex.row < getLengthOfCurrentPage() - 1)
     {
         app_timer_cancel(wd->textScrollTimer);
         scrollTextBackToStart();
