@@ -10,49 +10,41 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    container:
-      image: python:2.7.18-buster
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
       - name: Install system dependencies
-        run: apt-get update && apt-get -qq install -y wget python-pip python2.7-dev libsdl1.2debian libfdt1 libpixman-1-0 nodejs npm libfreetype6 libx11-6
+        run: sudo apt-get update && sudo apt-get install -y libfreetype6
 
-      - name: Cache Pebble SDK tool
+      - name: Install pebble-tool
+        run: pip install git+https://github.com/coredevices/pebble-tool.git
+
+      - name: Cache Pebble SDK
         uses: actions/cache@v4
-        id: tool-cache
+        id: sdk-cache
         with:
-          path: sdk
-          key: pebble-sdk-4.5-linux64-v1
-
-      - name: Download and configure Pebble SDK tool
-        if: steps.tool-cache.outputs.cache-hit != 'true'
-        run: |
-          pip install virtualenv
-          mkdir sdk
-          wget -q -O - https://developer.rebble.io/s3.amazonaws.com/assets.getpebble.com/pebble-tool/pebble-sdk-4.5-linux64.tar.bz2 | tar xj --strip-components=1 -C sdk
-          cd sdk && virtualenv .env && bash -c "source .env/bin/activate && pip install -r requirements.txt && deactivate"
-
-      - name: Cache SDK core tarball
-        uses: actions/cache@v4
-        id: core-cache
-        with:
-          path: sdk-core.tar.bz2
-          key: pebble-sdk-core-4.3-v1
-
-      - name: Download SDK core
-        if: steps.core-cache.outputs.cache-hit != 'true'
-        run: wget -q https://github.com/aveao/PebbleArchive/raw/master/SDKCores/sdk-core-4.3.tar.bz2 -O sdk-core.tar.bz2
+          path: ~/.pebble-sdk
+          key: pebble-sdk-latest-v1
 
       - name: Install SDK
+        if: steps.sdk-cache.outputs.cache-hit != 'true'
         run: |
-          mkdir -p ~/.pebble-sdk && touch ~/.pebble-sdk/NO_TRACKING
-          sdk/bin/pebble sdk install sdk-core.tar.bz2
+          mkdir -p ~/.pebble-sdk
+          touch ~/.pebble-sdk/NO_TRACKING
+          yes | pebble sdk install latest
 
       - name: Build
-        run: yes | sdk/bin/pebble build
+        run: yes | pebble build
 
       - name: Create or update latest release
         uses: ncipollo/release-action@v1
