@@ -97,8 +97,12 @@ function parseTodoistDate(dueObject) {
         return new Date(2025, 1, 1);
     }
     // parses this: 2016-12-0T12:00:00.000000 to a Date object
-    const timestamp = Date.parse(dueObject.date);
-    return new Date(timestamp); 
+    // Date-only strings (length 10) must get an explicit local-midnight time component,
+    // otherwise Date.parse interprets them as UTC midnight — off by one day in UTC− timezones.
+    const dateStr = dueObject.date.length === 10
+        ? dueObject.date + "T00:00:00"
+        : dueObject.date;
+    return new Date(dateStr);
 }
 
 // Parse a due date, which can be of several types.
@@ -111,8 +115,10 @@ function parseTodoistDate(dueObject) {
 function parseTodoistDue(due) {
     if (due === null)
         return null;
-    // TODO: add "Z" to these to force UTC? It will be absent in the first two cases.
-    const d = new Date(Date.parse(due.date));
+    const dateStr = due.date.length === 10
+        ? due.date + "T00:00:00"
+        : due.date;
+    const d = new Date(dateStr);
     if (!due.timezone) {
         if (due.date.length === 10) {
             return [0, d];
