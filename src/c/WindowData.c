@@ -1,5 +1,7 @@
 #include <pebble.h>
 #include "WindowData.h"
+#include "Items.h"
+#include "Projects.h"
 #include "Main.h"
 
 WindowData* createWindowData(Config* config)
@@ -23,9 +25,9 @@ int getLengthOfCurrentPage()
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
     if (wd->currentPage == 1)
-        return wd->projects->length;
+        return (wd->projects) ? wd->projects->length : 0;
     else
-        return wd->items->length;
+        return (wd->items) ? wd->items->length : 0;
 }
 
 void* getCurrentList()
@@ -40,8 +42,8 @@ void* getCurrentList()
 
 void destroyWindowData(WindowData* wd)
 {
-    free(wd->projects);
-    free(wd->items);
+    destroyProjectList(wd->projects);
+    destroyItemList(wd->items);
     free(wd->config);
     free(wd);
 }

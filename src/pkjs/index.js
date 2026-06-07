@@ -20,9 +20,6 @@ const maxForLowMemDevices = 20;
 
 // TODO: Persist settings on watch? This may make startup times faster.
 // https://developer.repebble.com/guides/user-interfaces/app-configuration/#persisting-settings
-var Clay = require('@rebble/clay');
-var clayConfig = require('./config');
-var clay = new Clay(clayConfig);
 
 function createUUID() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -30,43 +27,47 @@ function createUUID() {
     }
     
     // http://www.ietf.org/rfc/rfc4122.txt
-    var s = [];
-    var hexDigits = "0123456789abcdef";
-    for (var i = 0; i < 36; i++) {
+    const s = [];
+    const hexDigits = "0123456789abcdef";
+    for (let i = 0; i < 36; i++) {
         s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
     }
     s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
     s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
     s[8] = s[13] = s[18] = s[23] = "-";
 
-    var uuid = s.join("");
+    const uuid = s.join("");
     return uuid;
 }
 
-var xhrRequest = function (url, type, callback, body = null) {
-  const token = getAPIToken();
-
-  const xhr = new XMLHttpRequest();
-  xhr.onload = function () {
-    if (this.status === 200 || this.status === 204) {
-      callback(this.responseText || '{}');
-    } else {
-      sendErrorString("Error:Status " + this.status);
+function xhrRequest(url, type, callback, body = null) {
+    const token = getAPIToken();
+    if (!token) {
+        sendWaitingMessageAndPerformAction(1);
+        return;
     }
-  };
-  xhr.open(type, url);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-  if (body) {
-    xhr.setRequestHeader('Content-Type', 'application/json');
-  }
-  xhr.send(body);
-};
+
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function() {
+        if (this.status === 200 || this.status === 204) {
+            callback(this.responseText || '{}');
+        } else {
+            sendErrorString("Error:Status " + this.status);
+        }
+    };
+    xhr.open(type, url);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+    if (body) {
+        xhr.setRequestHeader('Content-Type', 'application/json');
+    }
+    xhr.send(body);
+}
 
 function getWatchVersion()
 {
-    var platform;
+    let platform;
     if(Pebble.getActiveWatchInfo) {
-      var watchinfo= Pebble.getActiveWatchInfo();
+      const watchinfo= Pebble.getActiveWatchInfo();
       platform=watchinfo.platform;
       } else {
         platform="aplite";
@@ -76,33 +77,17 @@ function getWatchVersion()
 
 function removeOutlookGarbage(str)
 {
-    if (startsWith(str,"[[outlook=id"))
+    if (str.startsWith("[[outlook=id"))
     {
-        var contentStart = str.indexOf(",") + 2;
-        var contentEnd = str.indexOf("]]");
+        const contentStart = str.indexOf(",") + 2;
+        const contentEnd = str.indexOf("]]");
         return str.substring(contentStart, contentEnd);
     }
-    else
-    {
-        return str;
-    }
-}
-
-//defining my own startsWith as the built in one does not seem to work
-//str = string to search
-//strMatch = string to match
-function startsWith(str, strMatch)
-{
-    for(var i = 0; i < str.length; i++)
-    {
-        if (str.substring(0, i) == strMatch)
-            return true;
-    }
-    return false;
+    return str;
 }
 
 function addDays(date, days) {
-    var result = new Date(date);
+    const result = new Date(date);
     result.setDate(result.getDate() + days);
     return result;
 }
@@ -129,7 +114,7 @@ function parseTodoistDue(due) {
     // TODO: add "Z" to these to force UTC? It will be absent in the first two cases.
     const d = new Date(Date.parse(due.date));
     if (!due.timezone) {
-        if (due.date.length == 10) {
+        if (due.date.length === 10) {
             return [0, d];
         }
         return [1, d];
@@ -244,12 +229,12 @@ function getItems(selectedProjectID, state)
             {
                 // Ignore items assigned to someone other than the current user,
                 // mimicking the official app. TODO: Make this configurable.
-                if (!!item.responsible_uid && item.responsible_uid != currentUserID)
+                if (!!item.responsible_uid && item.responsible_uid !== currentUserID)
                 {
                     continue;
                 }
 
-                var today = new Date();
+                let today = new Date();
                 today.setHours(0);
                 today.setMinutes(0);
                 today.setSeconds(0);
@@ -257,7 +242,7 @@ function getItems(selectedProjectID, state)
                 today = addDays(today, 1);
                 if (item.due === null)
                     continue;
-                var d = parseTodoistDate(item.due);
+                const d = parseTodoistDate(item.due);
                 if (d >= today)
                 {
                     continue;
@@ -266,7 +251,7 @@ function getItems(selectedProjectID, state)
             else
             {
                 //only proccess items that are in the selected project ID
-                if (item.project_id != selectedProjectID)
+                if (item.project_id !== selectedProjectID)
                 {
                     continue;
                 }
@@ -277,14 +262,14 @@ function getItems(selectedProjectID, state)
 
             itemNames = itemNames + item.content.replace("|", "") + " |";
             itemIDs = itemIDs  + item.id + "|";
-            if (parseTodoistDateString(item.due) == "")
+            if (parseTodoistDateString(item.due) === "")
                 itemDates = itemDates + "|";
             else
                 itemDates = itemDates + parseTodoistDateString(item.due) + "|";
                 itemIndentation = itemIndentation + getIndentLevel(item, items) + "|";
 
-            var idd = "";
-            var dd = parseTodoistDue(item.due);
+            let idd = "";
+            const dd = parseTodoistDue(item.due);
             if (dd)
             {
                 // Don't include date for the "today" list, since they're all today (or overdue).
@@ -297,7 +282,7 @@ function getItems(selectedProjectID, state)
                     idd += monthNames[d.getMonth()] + " " + d.getDate();
                 if (includeTime)
                 {
-                    if (idd != "")
+                    if (idd !== "")
                         idd += " "
                     idd += d.getHours() + ":" + d.getMinutes().toString().padStart(2, "0");
                 }
@@ -307,7 +292,7 @@ function getItems(selectedProjectID, state)
 
 
 
-        var dictionary =
+        const dictionary =
         {
             "ITEM_NAMES": itemNames,
             "ITEM_IDS": itemIDs,
@@ -318,15 +303,11 @@ function getItems(selectedProjectID, state)
 
 
         // Send to Pebble
-        Pebble.sendAppMessage(dictionary,
-                              function(e)
-                              {
-
-                              },
-                              function(e)
-                              {
-                                  sendErrorString(e.error.message);
-                              });
+        Pebble.sendAppMessage(
+            dictionary,
+            function() {},
+            function(e) { sendErrorString(e.error.message); }
+        );
     }
     catch (err)
     {
@@ -338,7 +319,7 @@ function getProjects(state)
 {
     try
     {
-        json = state.projects;
+        const json = state.projects;
     
         if (json[0])
         {
@@ -349,9 +330,9 @@ function getProjects(state)
             }
         }
         // Conditions
-        var projectNames = "";
-        var projectIDs = "";
-        var projectIndentation = "";
+        let projectNames = "";
+        let projectIDs = "";
+        let projectIndentation = "";
         
         //put today project in (custom)
         projectNames = "Today |";
@@ -363,7 +344,7 @@ function getProjects(state)
             return parseInt(a.item_order) - parseInt(b.item_order);
         });
         
-        for(var i=0;i<json.length;i++)
+        for(let i=0;i<json.length;i++)
         {
             projectNames = projectNames + json[i].name.replace("|", "")  + " |";
             projectIDs = projectIDs  + json[i].id + "|";
@@ -375,7 +356,7 @@ function getProjects(state)
             }
         }
     
-        var dictionary = 
+        const dictionary = 
         {
             "PROJECT_NAMES": projectNames,
             "PROJECT_IDs": projectIDs,
@@ -397,131 +378,31 @@ function getProjects(state)
 
 function markItem(responseText)
 {
-    if (responseText.search("ok") > 0)
-    {
-        var dictionary = 
-        {
-            "SELECTED_ITEM": "1"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
-    }
-    else
-    {
-        var dictionary = 
-        {
-            "SELECTED_ITEM": "0"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
-    }
-    
-}
-
-function markRecurringItem(responseText)
-{
-    if (responseText.search("ok") > 0)
-    {
-        var dictionary = 
-        {
-            "SELECTED_ITEM": "1"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
-    }
-    else
-    {
-        var dictionary = 
-        {
-            "SELECTED_ITEM": "0"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
-    }
-    
+    const value = responseText.search("ok") > 0 ? "1" : "0";
+    Pebble.sendAppMessage(
+        { "SELECTED_ITEM": value },
+        function() {},
+        function(e) { sendErrorString(e.error.message); }
+    );
 }
 
 function uncompleteItem(responseText)
 {
-    if (responseText.search("ok") > 0)
-    {
-        var dictionary = 
-        {
-            "SELECTED_ITEM_UNCOMPLETE": "1"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
-    }
-    else
-    {
-        var dictionary = 
-        {
-            "SELECTED_ITEM_UNCOMPLETE": "0"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
-    }
-    
+    const value = responseText.search("ok") > 0 ? "1" : "0";
+    Pebble.sendAppMessage(
+        { "SELECTED_ITEM_UNCOMPLETE": value },
+        function() {},
+        function(e) { sendErrorString(e.error.message); }
+    );
 }
 
-function addItem(responseText)
+function addItem()
 {
-    //add response error handling here
-        var dictionary = 
-        {
-            "ADD_NEW_ITEM": "1"
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });
+    Pebble.sendAppMessage(
+        { "ADD_NEW_ITEM": "1" },
+        function() {},
+        function(e) { sendErrorString(e.error.message); }
+    );
 }
 
 //code 1 = waiting for config
@@ -530,72 +411,49 @@ function sendWaitingMessageAndPerformAction(code)
 {
     try
     {
-        var dictionary = 
-            {
-                "WAITING": code
-            };
-            Pebble.sendAppMessage(dictionary,
-                              function(e) 
-                              {
-                                  if (code == 1)
-                                  {
-                                      Pebble.openURL(clay.generateUrl());
-                                  }
-                                  if (code == 2)
-                                  {
-                                      todoistSync(getProjects);
-                                  }
-                              },
-                              function(e) 
-                              {
-                                  sendErrorString(e.error.message);
-                              });
+        Pebble.sendAppMessage(
+            { "WAITING": code },
+            function() {
+                if (code === 1) {
+                    Pebble.openURL(buildConfigUrl());
+                }
+                if (code === 2) {
+                    todoistSync(getProjects);
+                }
+            },
+            function(e) {
+                sendErrorString(e.error.message);
+            }
+        );
     }
     catch (err)
     {
         sendErrorString(err.message);
     }
-      
 }
 
-//code 1 = Login failed
 function sendErrorMessage(code)
 {
-    var dictionary = 
-        {
-            "ERROR": code
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
+    Pebble.sendAppMessage(
+        { "ERROR": code },
+        function() {},
+        function(e) { sendErrorString(e.error.message); }
+    );
 }
 
 function sendErrorString(errorMsg)
 {
-    var dictionary = 
-        {
-            "ERRORMSG": errorMsg
-        };
-        Pebble.sendAppMessage(dictionary,
-                          function(e) 
-                          {
-                              
-                          },
-                          function(e) 
-                          {
-                              sendErrorString(e.error.message);
-                          });   
+    Pebble.sendAppMessage(
+        { "ERRORMSG": errorMsg },
+        function() {},
+        function() {}
+    );
 }
 
 function getAPIToken()
 {
     const settings = JSON.parse(localStorage.getItem('clay-settings'));
+    if (!settings || !settings.API_TOKEN) return null;
     return settings.API_TOKEN;
 }
 
@@ -608,11 +466,11 @@ function todoistSync(callback)
 {
     // Look for existing sync state of an appropriate revision.
     let syncToken = localStorage.getItem("todoistSyncToken") || "*";
-    if (localStorage.getItem("todoistSyncRev") != "rev1")
+    if (localStorage.getItem("todoistSyncRev") !== "rev1")
         syncToken = "*";  // last sync has a different subset; start afresh
     // TODO: Periodically (e.g. every 30d?), do a full sync to clear old state, like deleted tasks.
     let state = {};
-    if (syncToken != "*") {
+    if (syncToken !== "*") {
         state = JSON.parse(localStorage.getItem("todoistSyncState") || "{}");
 
         const lastSync = parseInt(localStorage.getItem("todoistLastSync")) || 0;
@@ -625,12 +483,9 @@ function todoistSync(callback)
         }
     }
 
-    // Sync data.
-    //console.log("Starting Todoist sync with syncToken=" + syncToken);
     // Unfortunately, URLSearchParams is not in Pebble's JS environment.
     const params = "sync_token=" + encodeURIComponent(syncToken) + `&resource_types=["items","projects","user"]`;
     xhrRequest(apiUrl + "?" + params, "POST", function(response) {
-        //console.log("Todoist sync returned " + response.length + " bytes");
         const data = JSON.parse(response);
 
         // Merge incremental data.
@@ -643,7 +498,7 @@ function todoistSync(callback)
                 // Replace corresponding entry in state[key], matching on ID.
                 let found = false;
                 for (let i = 0; i < state[key].length; ++i) {
-                    if (state[key][i].id == val.id) {
+                    if (state[key][i].id === val.id) {
                         state[key][i] = val;
                         found = true;
                         break;
@@ -726,7 +581,7 @@ function markRecurringItemAsCompleted(itemID)
     }];
     
     const params = "commands=" + encodeURIComponent(JSON.stringify(commandsjson));
-    xhrRequest(apiUrl + "?" + params, 'POST', markRecurringItem);
+    xhrRequest(apiUrl + "?" + params, 'POST', markItem);
 }
 
 function markItemAsUncompleted(itemID)
@@ -744,12 +599,70 @@ function markItemAsUncompleted(itemID)
 }
 
 
+function buildConfigUrl()
+{
+    let existing = '';
+    try {
+        const s = JSON.parse(localStorage.getItem('clay-settings'));
+        if (s && s.API_TOKEN) existing = s.API_TOKEN;
+    } catch {}
+
+    // Escape existing token value for safe HTML attribute embedding
+    const safeExisting = existing.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+    const html = '<!DOCTYPE html><html><head>' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+        '<style>' +
+        'body{font-family:sans-serif;padding:20px;background:#f4f4f4;color:#333}' +
+        'h2{color:#e44332;margin-top:0}' +
+        'input{width:100%;padding:10px;margin:10px 0;box-sizing:border-box;' +
+        'font-size:14px;border:1px solid #ccc;border-radius:4px}' +
+        'button{width:100%;padding:14px;background:#e44332;color:#fff;' +
+        'border:none;font-size:16px;border-radius:4px;cursor:pointer}' +
+        'a{color:#e44332}p{font-size:14px}' +
+        '</style></head><body>' +
+        '<h2>Todoist Settings</h2>' +
+        '<p>Paste your API token from <a href="https://app.todoist.com/app/settings/integrations/developer">Todoist developer settings</a>:</p>' +
+        '<input type="text" id="token" placeholder="API token" value="' + safeExisting + '">' +
+        '<button onclick="save()">Save</button>' +
+        '<script>' +
+        'function save(){' +
+        'var t=document.getElementById("token").value.trim();' +
+        'if(!t){alert("Please enter an API token");return;}' +
+        'var data=encodeURIComponent(JSON.stringify({API_TOKEN:t}));' +
+        'var m=window.location.search.match(/[?&]return_to=([^&]+)/);' +
+        'var rt=m?decodeURIComponent(m[1]):"pebblejs://close";' +
+        'window.location.href=rt+"#"+data;}' +
+        '<\/script></body></html>';
+
+    return 'data:text/html,' + encodeURIComponent(html);
+}
+
+Pebble.addEventListener('showConfiguration', function() {
+    Pebble.openURL(buildConfigUrl());
+});
+
+Pebble.addEventListener('webviewclosed', function(e) {
+    if (!e || !e.response) return;
+    try {
+        const settings = JSON.parse(decodeURIComponent(e.response));
+        if (settings.API_TOKEN) {
+            localStorage.setItem('clay-settings', JSON.stringify(settings));
+            todoistSync(getProjects);
+        }
+    } catch {}
+});
+
 // Listen for when the watchface is opened
 Pebble.addEventListener('ready', startup);
 
 function startup()
 {
-    sendWaitingMessageAndPerformAction(2);
+    if (getAPIToken()) {
+        sendWaitingMessageAndPerformAction(2);
+    } else {
+        sendWaitingMessageAndPerformAction(1);
+    }
 }
 
 // Listen for when an AppMessage is received
@@ -757,7 +670,7 @@ Pebble.addEventListener('appmessage',
   function(e) {
     if(e.payload.SELECTED_PROJECT)
     {
-        if (e.payload.SELECTED_PROJECT == "0")  // seems to indicate today's project?
+        if (e.payload.SELECTED_PROJECT === "0")  // seems to indicate today's project?
             todoistSync(getItems.bind(null, 0));
         else
             todoistSync(getItems.bind(null, e.payload.SELECTED_PROJECT));
@@ -776,7 +689,7 @@ Pebble.addEventListener('appmessage',
     }
     if(e.payload.ADD_NEW_ITEM)
     {
-        var array = e.payload.ADD_NEW_ITEM.split("|");
+        const array = e.payload.ADD_NEW_ITEM.split("|");
         addNewItem(array[0], array[1]);
     }
   }                     

@@ -952,6 +952,8 @@ void window_load(Window *window)
  
 void window_unload(Window *window)
 {
+    WindowData* wd = (WindowData*)window_get_user_data(window);
+    if (wd) app_timer_cancel(wd->textScrollTimer);
     menu_layer_destroy(myMenuLayer);
 }
 
@@ -985,8 +987,11 @@ void init()
 void deinit()
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
-    if (wd->config)
-        savePersistentConfig(wd->config);
+    if (wd) {
+        if (wd->config)
+            savePersistentConfig(wd->config);
+        destroyWindowData(wd);
+    }
     window_destroy(window);
 }
 

@@ -69,8 +69,7 @@ void menu_select_callback(ClickRecognizerRef recognizer, void *context)
         int currentRow = currentIndex.row;
         
         #ifdef PBL_MICROPHONE
-        
-            WindowData* wd = (WindowData*)window_get_user_data(window);
+
             //if item is "Add New" (item id will be zero if it's add new)
             if (strcmp(wd->items->itemIDs[currentRow],"0") == 0)
             {
@@ -95,7 +94,7 @@ void menu_select_callback(ClickRecognizerRef recognizer, void *context)
     }
 }
 
-void up_click_handler(ClickRecognizerRef recognizer, void *context) 
+void up_click_handler(ClickRecognizerRef recognizer, void *context)
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
@@ -105,23 +104,20 @@ void up_click_handler(ClickRecognizerRef recognizer, void *context)
         scrollTextBackToStart();
         currentIndex.row--;
         menu_layer_set_selected_index(myMenuLayer, currentIndex, MenuRowAlignCenter, false);
-        WindowData* wd = window_get_user_data(window);
         wd->textScrollTimer = app_timer_register(wd->config->scrollSpeed, timerTick, NULL);
     }
 }
 
-void down_click_handler(ClickRecognizerRef recognizer, void *context) 
+void down_click_handler(ClickRecognizerRef recognizer, void *context)
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
     if (currentIndex.row < getLengthOfCurrentPage())
     {
         app_timer_cancel(wd->textScrollTimer);
-        //scroll the text back to the beginning when unselecting
         scrollTextBackToStart();
         currentIndex.row++;
         menu_layer_set_selected_index(myMenuLayer, currentIndex, MenuRowAlignCenter, false);
-        WindowData* wd = window_get_user_data(window);
         wd->textScrollTimer = app_timer_register(wd->config->scrollSpeed, timerTick, NULL);
     }
 }
@@ -146,6 +142,7 @@ void back_click_handler(ClickRecognizerRef recognizer, void *context)
     }
     else
     {
+        app_timer_cancel(wd->textScrollTimer);
         window_stack_pop_all(1);
-    }    
+    }
 }

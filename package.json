@@ -1,7 +1,8 @@
 {
     "author": "Konrad Iturbe <hi@konraditurbe.dev>",
-    "dependencies": {
-        "@rebble/clay": "^1.0.10"
+    "dependencies": {},
+    "devDependencies": {
+        "eslint": "^9.0.0"
     },
     "keywords": [],
     "name": "todoist-mini",
