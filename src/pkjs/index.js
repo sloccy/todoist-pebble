@@ -605,7 +605,7 @@ function buildConfigUrl()
     try {
         const s = JSON.parse(localStorage.getItem('clay-settings'));
         if (s && s.API_TOKEN) existing = s.API_TOKEN;
-    } catch {}
+    } catch (_e) {}
 
     // Escape existing token value for safe HTML attribute embedding
     const safeExisting = existing.replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -650,7 +650,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
             localStorage.setItem('clay-settings', JSON.stringify(settings));
             todoistSync(getProjects);
         }
-    } catch {}
+    } catch (_e) {}
 });
 
 // Listen for when the watchface is opened
