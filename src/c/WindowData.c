@@ -11,6 +11,7 @@ WindowData* createWindowData(Config* config)
     wd->items = 0;
     wd->config = config;
     wd->currentPage = 1;
+    wd->selectedProjectIndex = 0;
     wd->currentScrollable = 0;
     wd->scrolledNumber = 0;
     return wd;
@@ -25,7 +26,13 @@ int getLengthOfCurrentPage()
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
     if (wd->currentPage == 1)
-        return (wd->projects) ? wd->projects->length : 0;
+    {
+        #ifdef PBL_MICROPHONE
+            return (wd->projects) ? wd->projects->length + 1 : 0;
+        #else
+            return (wd->projects) ? wd->projects->length : 0;
+        #endif
+    }
     else
         return (wd->items) ? wd->items->length : 0;
 }

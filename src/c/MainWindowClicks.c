@@ -59,6 +59,18 @@ void menu_select_callback(ClickRecognizerRef recognizer, void *context)
         layer_mark_dirty(menu_layer_get_layer(myMenuLayer));
         MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
         int currentRow = currentIndex.row;
+
+        #ifdef PBL_MICROPHONE
+        if (currentRow == 0)
+        {
+            wd->selectedProjectIndex = -1;
+            s_dictation_session = dictation_session_create(512, dictation_session_callback, NULL);
+            dictation_session_start(s_dictation_session);
+            return;
+        }
+        currentRow--;
+        #endif
+
         wd->selectedProjectIndex = currentRow;
         sendProjectIDToPhone(currentRow);
         displayMessage("Loading...", 102);
