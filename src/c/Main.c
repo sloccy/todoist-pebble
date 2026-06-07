@@ -26,8 +26,7 @@ void addItem(char* itemText)
       return;
     }
     strcat(itemText, "|");
-    if (wd->selectedProjectIndex >= 0 && wd->projects)
-        strcat(itemText, wd->projects->projectIDs[wd->selectedProjectIndex]);
+    strcat(itemText,wd->projects->projectIDs[wd->selectedProjectIndex]);
     dict_write_cstring(iter, ADD_NEW_ITEM, itemText);
     dict_write_end(iter);
   
@@ -217,79 +216,39 @@ void draw_row_callback_round(GContext *ctx, Layer *cell_layer, MenuIndex *cell_i
     {
         if (wd->projects)
         {
-            MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
-            int currentRow = currentIndex.row;
-
-            #ifdef PBL_MICROPHONE
-            if (cell_index->row == 0)
-            {
-                GRect cellBounds = layer_get_bounds(cell_layer);
-                #ifdef PBL_COLOR
-                    graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
-                    graphics_context_set_fill_color(ctx, wd->config->altBackgroundColor);
-                    graphics_context_set_stroke_color(ctx, wd->config->altForegroundColor);
-                #endif
-                graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-                cellBounds.origin.x = cellBounds.origin.x + 12;
-                cellBounds.size.w = cellBounds.size.w - 24;
-                cellBounds.origin.y = cellBounds.origin.y + 3;
-                cellBounds.size.h = cellBounds.size.h - 6;
-                if (currentRow == 0)
-                {
-                    #ifdef PBL_COLOR
-                        graphics_context_set_text_color(ctx, wd->config->highlightForegroundColor);
-                        graphics_context_set_fill_color(ctx, wd->config->highlightBackgroundColor);
-                        graphics_context_set_stroke_color(ctx, wd->config->highlightForegroundColor);
-                    #endif
-                    wd->currentScrollable = 0;
-                }
-                else
-                {
-                    #ifdef PBL_COLOR
-                        graphics_context_set_text_color(ctx, wd->config->foregroundColor);
-                        graphics_context_set_fill_color(ctx, wd->config->backgroundColor);
-                        graphics_context_set_stroke_color(ctx, wd->config->foregroundColor);
-                    #endif
-                }
-                graphics_fill_rect(ctx, cellBounds, 8, GCornersAll);
-                cellBounds.origin.x = cellBounds.origin.x + 3;
-                graphics_draw_text(ctx, "+ Add New", fonts_get_system_font(FONT_KEY_GOTHIC_18), cellBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter, NULL);
-            }
-            else
-            #endif
             for(int i=0;i<(wd->projects->length);i++)
             {
                 //remember this is the row it is CURRENTLY drawing not the SELECTED row, it will draw all rows on an update by calling the function a bunch of different times
-                #ifdef PBL_MICROPHONE
-                if (cell_index->row == i + 1)
-                #else
                 if (cell_index->row == i)
-                #endif
                 {
                     GRect cellBounds = layer_get_bounds(cell_layer);
-
+                    
+                    MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
+                    int currentRow = currentIndex.row;
+                    
+                    
                     //set background color (alt color)
                     #ifdef PBL_COLOR
                         graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
                         graphics_context_set_fill_color(ctx, wd->config->altBackgroundColor);
                         graphics_context_set_stroke_color(ctx, wd->config->altForegroundColor);
                     #endif
-
+                    
                     //fill background
                     graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-
+                    
                     //set standard location of item box
                     cellBounds.origin.x = cellBounds.origin.x + 12;
                     cellBounds.size.w = cellBounds.size.w - 24;
-
+                    
                     cellBounds.origin.y = cellBounds.origin.y + 3;
                     cellBounds.size.h = cellBounds.size.h - 6;
-
+                    
                     //indent item box if needed
                     cellBounds.origin.x = cellBounds.origin.x + ((atoi(wd->projects->indentation[i])-1) * 7);
                     cellBounds.size.w = cellBounds.size.w - ((atoi(wd->projects->indentation[i])-1) * 7);
-
-
+                    
+                    
                     if (cell_index->row == currentRow)
                     {
                         //have to reverse background/foreground color on aplite as it seems to auto invert
@@ -311,8 +270,8 @@ void draw_row_callback_round(GContext *ctx, Layer *cell_layer, MenuIndex *cell_i
                     //fill rounded rect (Item space)
                     graphics_fill_rect(ctx, cellBounds, 8, GCornersAll);
                     //graphics_draw_round_rect(ctx, cellBounds, 5);
-
-
+                    
+                    
                     //if selected
                     if (cell_index->row == currentRow)
                     {
@@ -320,13 +279,15 @@ void draw_row_callback_round(GContext *ctx, Layer *cell_layer, MenuIndex *cell_i
                         cellBounds.size.w = cellBounds.size.w*2.0;
                         GSize textSize = graphics_text_layout_get_content_size(wd->projects->projects[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), cellBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentCenter);
                         cellBounds.size.w = cellBounds.size.w/2.0;
+                        //snprintf(asdf, 100, "%d", textSize.w);
+                        //displayErrorMessage(asdf);
                         if (textSize.w > cellBounds.size.w)
                         {
                             wd->currentScrollable = 1;
                         }
                         else
                         {
-                            wd->currentScrollable = 0;
+                            wd->currentScrollable = 0; 
                         }
                     }
                     cellBounds.origin.x = cellBounds.origin.x + 3;
@@ -335,7 +296,7 @@ void draw_row_callback_round(GContext *ctx, Layer *cell_layer, MenuIndex *cell_i
             }
         }
     }
-
+    
     if (wd->currentPage == 2)
     {
         if (wd->items && (wd->items->length != 0))
@@ -345,38 +306,38 @@ void draw_row_callback_round(GContext *ctx, Layer *cell_layer, MenuIndex *cell_i
                 if (cell_index->row == i)
                 {
                     GRect cellBounds = layer_get_bounds(cell_layer);
-
+                    
                     //text takes up 80% of the layer size due to the checkboxes
-
+                    
                     //GRect newBounds = GRect(cellBounds.origin.x, cellBounds.origin.y, cellBounds.size.w*.80, cellBounds.size.h);
                     //layer_set_bounds(cell_layer, newBounds);
-
+                    
                     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
                     int currentRow = currentIndex.row;
-
+                    
                     //set background color (alt color)
                     #ifdef PBL_COLOR
                         graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
                         graphics_context_set_fill_color(ctx, wd->config->altBackgroundColor);
                         graphics_context_set_stroke_color(ctx, wd->config->altForegroundColor);
                     #endif
-
+                    
                     //fill background
                     graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-
+                    
                     //set standard location of item box
                     cellBounds.origin.x = cellBounds.origin.x + 12;
                     cellBounds.size.w = cellBounds.size.w - 24;
                     cellBounds.origin.y = cellBounds.origin.y + 3;
                     cellBounds.size.h = cellBounds.size.h - 6;
-
+                    
                     //indent item box if needed
                     cellBounds.origin.x = cellBounds.origin.x + ((atoi(wd->items->indentation[i])-1) * 7);
                     cellBounds.size.w = cellBounds.size.w - ((atoi(wd->items->indentation[i])-1) * 7);
-
+                    
                     GRect textBounds = GRect(cellBounds.origin.x, cellBounds.origin.y, cellBounds.size.w*.80, 30);
-
-
+                    
+                    
                     if (cell_index->row == currentRow)
                     {
                         //have to reverse background/foreground color on aplite as it seems to auto invert
@@ -402,19 +363,21 @@ void draw_row_callback_round(GContext *ctx, Layer *cell_layer, MenuIndex *cell_i
                     if (cell_index->row == currentRow)
                     {
                         GSize textSize = graphics_text_layout_get_content_size(wd->items->items[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(cellBounds.origin.x, cellBounds.origin.y, cellBounds.size.w*2, 30), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
+                        //snprintf(asdf, 100, "%d", textSize.w);
+                        //displayErrorMessage(asdf);
                         if (textSize.w >= (textBounds.size.w))
                         {
                             wd->currentScrollable = 1;
                         }
                         else
                         {
-                            wd->currentScrollable = 0;
+                            wd->currentScrollable = 0; 
                         }
                     }
                     textBounds.origin.x = textBounds.origin.x + 3;
-
+                    
                     graphics_draw_text(ctx, wd->items->items[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), textBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
-
+                    
                     //if it has a date draw the date
                     if (strcmp(wd->items->itemDates[cell_index->row], "") != 0)
                     {
@@ -452,79 +415,39 @@ void draw_row_callback_modern(GContext *ctx, Layer *cell_layer, MenuIndex *cell_
     {
         if (wd->projects)
         {
-            MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
-            int currentRow = currentIndex.row;
-
-            #ifdef PBL_MICROPHONE
-            if (cell_index->row == 0)
-            {
-                GRect cellBounds = layer_get_bounds(cell_layer);
-                #ifdef PBL_COLOR
-                    graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
-                    graphics_context_set_fill_color(ctx, wd->config->altBackgroundColor);
-                    graphics_context_set_stroke_color(ctx, wd->config->altForegroundColor);
-                #endif
-                graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-                cellBounds.origin.x = cellBounds.origin.x + 5;
-                cellBounds.size.w = cellBounds.size.w - 10;
-                cellBounds.origin.y = cellBounds.origin.y + 3;
-                cellBounds.size.h = cellBounds.size.h - 6;
-                if (currentRow == 0)
-                {
-                    #ifdef PBL_COLOR
-                        graphics_context_set_text_color(ctx, wd->config->highlightForegroundColor);
-                        graphics_context_set_fill_color(ctx, wd->config->highlightBackgroundColor);
-                        graphics_context_set_stroke_color(ctx, wd->config->highlightForegroundColor);
-                    #endif
-                    wd->currentScrollable = 0;
-                }
-                else
-                {
-                    #ifdef PBL_COLOR
-                        graphics_context_set_text_color(ctx, wd->config->foregroundColor);
-                        graphics_context_set_fill_color(ctx, wd->config->backgroundColor);
-                        graphics_context_set_stroke_color(ctx, wd->config->foregroundColor);
-                    #endif
-                }
-                graphics_fill_rect(ctx, cellBounds, 5, GCornersAll);
-                cellBounds.origin.x = cellBounds.origin.x + 3;
-                graphics_draw_text(ctx, "+ Add New", fonts_get_system_font(FONT_KEY_GOTHIC_18), cellBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
-            }
-            else
-            #endif
             for(int i=0;i<(wd->projects->length);i++)
             {
                 //remember this is the row it is CURRENTLY drawing not the SELECTED row, it will draw all rows on an update by calling the function a bunch of different times
-                #ifdef PBL_MICROPHONE
-                if (cell_index->row == i + 1)
-                #else
                 if (cell_index->row == i)
-                #endif
                 {
                     GRect cellBounds = layer_get_bounds(cell_layer);
-
+                    
+                    MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
+                    int currentRow = currentIndex.row;
+                    
+                    
                     //set background color (alt color)
                     #ifdef PBL_COLOR
                         graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
                         graphics_context_set_fill_color(ctx, wd->config->altBackgroundColor);
                         graphics_context_set_stroke_color(ctx, wd->config->altForegroundColor);
                     #endif
-
+                    
                     //fill background
                     graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-
+                    
                     //set standard location of item box
                     cellBounds.origin.x = cellBounds.origin.x + 5;
                     cellBounds.size.w = cellBounds.size.w - 10;
-
+                    
                     cellBounds.origin.y = cellBounds.origin.y + 3;
                     cellBounds.size.h = cellBounds.size.h - 6;
-
+                    
                     //indent item box if needed
                     cellBounds.origin.x = cellBounds.origin.x + ((atoi(wd->projects->indentation[i])-1) * 7);
                     cellBounds.size.w = cellBounds.size.w - ((atoi(wd->projects->indentation[i])-1) * 7);
-
-
+                    
+                    
                     if (cell_index->row == currentRow)
                     {
                         //have to reverse background/foreground color on aplite as it seems to auto invert
@@ -546,8 +469,8 @@ void draw_row_callback_modern(GContext *ctx, Layer *cell_layer, MenuIndex *cell_
                     //fill rounded rect (Item space)
                     graphics_fill_rect(ctx, cellBounds, 5, GCornersAll);
                     //graphics_draw_round_rect(ctx, cellBounds, 5);
-
-
+                    
+                    
                     //if selected
                     if (cell_index->row == currentRow)
                     {
@@ -555,13 +478,15 @@ void draw_row_callback_modern(GContext *ctx, Layer *cell_layer, MenuIndex *cell_
                         cellBounds.size.w = cellBounds.size.w*2.0;
                         GSize textSize = graphics_text_layout_get_content_size(wd->projects->projects[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), cellBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
                         cellBounds.size.w = cellBounds.size.w/2.0;
+                        //snprintf(asdf, 100, "%d", textSize.w);
+                        //displayErrorMessage(asdf);
                         if (textSize.w > cellBounds.size.w)
                         {
                             wd->currentScrollable = 1;
                         }
                         else
                         {
-                            wd->currentScrollable = 0;
+                            wd->currentScrollable = 0; 
                         }
                     }
                     cellBounds.origin.x = cellBounds.origin.x + 3;
@@ -570,7 +495,7 @@ void draw_row_callback_modern(GContext *ctx, Layer *cell_layer, MenuIndex *cell_
             }
         }
     }
-
+    
     if (wd->currentPage == 2)
     {
         if (wd->items && (wd->items->length != 0))
@@ -580,38 +505,38 @@ void draw_row_callback_modern(GContext *ctx, Layer *cell_layer, MenuIndex *cell_
                 if (cell_index->row == i)
                 {
                     GRect cellBounds = layer_get_bounds(cell_layer);
-
+                    
                     //text takes up 80% of the layer size due to the checkboxes
-
+                    
                     //GRect newBounds = GRect(cellBounds.origin.x, cellBounds.origin.y, cellBounds.size.w*.80, cellBounds.size.h);
                     //layer_set_bounds(cell_layer, newBounds);
-
+                    
                     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
                     int currentRow = currentIndex.row;
-
+                    
                     //set background color (alt color)
                     #ifdef PBL_COLOR
                         graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
                         graphics_context_set_fill_color(ctx, wd->config->altBackgroundColor);
                         graphics_context_set_stroke_color(ctx, wd->config->altForegroundColor);
                     #endif
-
+                    
                     //fill background
                     graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-
+                    
                     //set standard location of item box
                     cellBounds.origin.x = cellBounds.origin.x + 5;
                     cellBounds.size.w = cellBounds.size.w - 10;
                     cellBounds.origin.y = cellBounds.origin.y + 3;
                     cellBounds.size.h = cellBounds.size.h - 6;
-
+                    
                     //indent item box if needed
                     cellBounds.origin.x = cellBounds.origin.x + ((atoi(wd->items->indentation[i])-1) * 7);
                     cellBounds.size.w = cellBounds.size.w - ((atoi(wd->items->indentation[i])-1) * 7);
-
+                    
                     GRect textBounds = GRect(cellBounds.origin.x, cellBounds.origin.y, cellBounds.size.w*.80, 30);
-
-
+                    
+                    
                     if (cell_index->row == currentRow)
                     {
                         //have to reverse background/foreground color on aplite as it seems to auto invert
@@ -637,19 +562,21 @@ void draw_row_callback_modern(GContext *ctx, Layer *cell_layer, MenuIndex *cell_
                     if (cell_index->row == currentRow)
                     {
                         GSize textSize = graphics_text_layout_get_content_size(wd->items->items[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), GRect(cellBounds.origin.x, cellBounds.origin.y, cellBounds.size.w*2, 30), GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
+                        //snprintf(asdf, 100, "%d", textSize.w);
+                        //displayErrorMessage(asdf);
                         if (textSize.w >= (textBounds.size.w))
                         {
                             wd->currentScrollable = 1;
                         }
                         else
                         {
-                            wd->currentScrollable = 0;
+                            wd->currentScrollable = 0; 
                         }
                     }
                     textBounds.origin.x = textBounds.origin.x + 3;
-
+                    
                     graphics_draw_text(ctx, wd->items->items[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), textBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
-
+                    
                     //if it has a date draw the date
                     if (strcmp(wd->items->itemDates[cell_index->row], "") != 0)
                     {
@@ -677,46 +604,16 @@ void draw_row_callback(GContext *ctx, Layer *cell_layer, MenuIndex *cell_index, 
     {
         if (wd->projects)
         {
-            MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
-            int currentRow = currentIndex.row;
-
-            #ifdef PBL_MICROPHONE
-            if (cell_index->row == 0)
-            {
-                GRect cellBounds = layer_get_bounds(cell_layer);
-                if (currentRow == 0)
-                {
-                    graphics_context_set_text_color(ctx, wd->config->highlightForegroundColor);
-                    graphics_context_set_fill_color(ctx, wd->config->highlightBackgroundColor);
-                    graphics_context_set_stroke_color(ctx, wd->config->highlightForegroundColor);
-                    wd->currentScrollable = 0;
-                }
-                else
-                {
-                    graphics_context_set_text_color(ctx, wd->config->foregroundColor);
-                    graphics_context_set_fill_color(ctx, wd->config->backgroundColor);
-                    graphics_context_set_stroke_color(ctx, wd->config->foregroundColor);
-                }
-                cellBounds.origin.x = cellBounds.origin.x + 5;
-                cellBounds.size.w = cellBounds.size.w - 10;
-                cellBounds.origin.y = cellBounds.origin.y + 3;
-                cellBounds.size.h = cellBounds.size.h - 6;
-                cellBounds.origin.x = cellBounds.origin.x + 3;
-                graphics_draw_text(ctx, "+ Add New", fonts_get_system_font(FONT_KEY_GOTHIC_18), cellBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft, NULL);
-            }
-            else
-            #endif
             for(int i=0;i<(wd->projects->length);i++)
             {
                 //remember this is the row it is CURRENTLY drawing not the SELECTED row, it will draw all rows on an update by calling the function a bunch of different times
-                #ifdef PBL_MICROPHONE
-                if (cell_index->row == i + 1)
-                #else
                 if (cell_index->row == i)
-                #endif
                 {
                     GRect cellBounds = layer_get_bounds(cell_layer);
-
+                    
+                    MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
+                    int currentRow = currentIndex.row;
+                    
                     if (cell_index->row == currentRow)
                     {
                         //have to reverse background/foreground color on aplite as it seems to auto invert
@@ -738,7 +635,7 @@ void draw_row_callback(GContext *ctx, Layer *cell_layer, MenuIndex *cell_index, 
                             graphics_context_set_text_color(ctx, wd->config->foregroundColor);
                             graphics_context_set_fill_color(ctx, wd->config->backgroundColor);
                             graphics_context_set_stroke_color(ctx, wd->config->foregroundColor);
-                        }
+                        }  
                         else
                         {
                             graphics_context_set_text_color(ctx, wd->config->altForegroundColor);
@@ -747,18 +644,18 @@ void draw_row_callback(GContext *ctx, Layer *cell_layer, MenuIndex *cell_index, 
                         }
                     }
                     //graphics_fill_rect(ctx, cellBounds, 0, GCornerNone);
-
+                    
                     //set standard location of item box
                     cellBounds.origin.x = cellBounds.origin.x + 5;
                     cellBounds.size.w = cellBounds.size.w - 10;
-
+                    
                     cellBounds.origin.y = cellBounds.origin.y + 3;
                     cellBounds.size.h = cellBounds.size.h - 6;
-
+                    
                     //indent item box if needed
                     cellBounds.origin.x = cellBounds.origin.x + ((atoi(wd->projects->indentation[i])-1) * 7);
                     cellBounds.size.w = cellBounds.size.w - ((atoi(wd->projects->indentation[i])-1) * 7);
-
+                    
                     //if selected
                     if (cell_index->row == currentRow)
                     {
@@ -766,13 +663,15 @@ void draw_row_callback(GContext *ctx, Layer *cell_layer, MenuIndex *cell_index, 
                         cellBounds.size.w = cellBounds.size.w*2.0;
                         GSize textSize = graphics_text_layout_get_content_size(wd->projects->projects[i], fonts_get_system_font(FONT_KEY_GOTHIC_18), cellBounds, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
                         cellBounds.size.w = cellBounds.size.w/2.0;
+                        //snprintf(asdf, 100, "%d", textSize.w);
+                        //displayErrorMessage(asdf);
                         if (textSize.w > cellBounds.size.w)
                         {
                             wd->currentScrollable = 1;
                         }
                         else
                         {
-                            wd->currentScrollable = 0;
+                            wd->currentScrollable = 0; 
                         }
                     }
                     cellBounds.origin.x = cellBounds.origin.x + 3;
@@ -917,11 +816,7 @@ uint16_t num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *
     {
         if (wd->projects)
         {
-            #ifdef PBL_MICROPHONE
-                return wd->projects->length + 1;
-            #else
-                return wd->projects->length;
-            #endif
+            return wd->projects->length;
         }
         else
         {
@@ -952,13 +847,8 @@ void timerTick(void* data)
     int currentRow = currentIndex.row;
     if (wd->currentPage == 1 && wd->currentScrollable)
     {
-        #ifdef PBL_MICROPHONE
-            int projectIndex = currentRow > 0 ? currentRow - 1 : 0;
-        #else
-            int projectIndex = currentRow;
-        #endif
-        scrollTextByOneLetter(wd->projects->projects[projectIndex]);
-        if (wd->scrolledNumber == (int)strlen(wd->projects->projects[projectIndex]) - 1)
+        scrollTextByOneLetter(wd->projects->projects[currentRow]);
+        if (wd->scrolledNumber == (int)strlen(wd->projects->projects[currentRow]) - 1)
             wd->scrolledNumber = 0;
         else
             wd->scrolledNumber++;
@@ -984,13 +874,8 @@ void scrollTextBackToStart()
     {
         if (wd->currentPage == 1)
         {
-            #ifdef PBL_MICROPHONE
-                int scrollProjectIndex = currentIndex.row > 0 ? currentIndex.row - 1 : 0;
-            #else
-                int scrollProjectIndex = currentIndex.row;
-            #endif
-            scrollTextByOneLetter(wd->projects->projects[scrollProjectIndex]);
-            if (wd->scrolledNumber == (int)strlen(wd->projects->projects[scrollProjectIndex]) - 1)
+            scrollTextByOneLetter(wd->projects->projects[currentIndex.row]);
+            if (wd->scrolledNumber == (int)strlen(wd->projects->projects[currentIndex.row]) - 1)
                 wd->scrolledNumber = 0;
             else
                 wd->scrolledNumber++;

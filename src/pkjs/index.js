@@ -213,8 +213,8 @@ function getItems(selectedProjectID, state)
 
         const watchVersion = getWatchVersion();
 
-        //only put "Add New" if we are on modern watches and not in inbox (inbox has its own button on the main screen)
-        if (modernWatches.includes(watchVersion) && !isToday && !isInbox)
+        //only put "Add New" if we are on modern watches
+        if (modernWatches.includes(watchVersion) && !isToday)
         {
             itemNames += "+ Add New |";
             itemIDs += "0|";
@@ -551,18 +551,7 @@ function addNewItem(itemText, projectID)
     if (itemText.endsWith(".")) {
         itemText = itemText.slice(0, -1);
     }
-
-    // Empty project ID means "add to inbox" (triggered from the main screen)
-    if (!projectID) {
-        const quickAddData = {
-            "text": itemText,
-            "auto_reminder": false,
-            "meta": false
-        };
-        xhrRequest('https://api.todoist.com/api/v1/tasks/quick', 'POST', addItem, JSON.stringify(quickAddData));
-        return;
-    }
-
+    
     // Check if this is for Inbox - use Quick Add API
     if (localStorage.getItem("inboxProjectID") !== "" && projectID === localStorage.getItem("inboxProjectID")) {
         const quickAddData = {
