@@ -371,6 +371,7 @@ function getProjects(state)
         for(let i=0;i<json.length;i++)
         {
             const cleanName = json[i].name.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').replace("|", "").trim();
+            if (!cleanName) continue;
             projectNames = projectNames + cleanName + " |";
             projectIDs = projectIDs  + json[i].id + "|";
             projectIndentation = projectIndentation + getIndentLevel(json[i], json) + "|";

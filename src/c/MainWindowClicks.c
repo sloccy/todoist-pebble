@@ -114,7 +114,7 @@ void down_click_handler(ClickRecognizerRef recognizer, void *context)
 {
     WindowData* wd = (WindowData*)window_get_user_data(window);
     MenuIndex currentIndex = menu_layer_get_selected_index(myMenuLayer);
-    if (currentIndex.row < getLengthOfCurrentPage() - 1)
+    if (currentIndex.row < getLengthOfCurrentPage())
     {
         app_timer_cancel(wd->textScrollTimer);
         scrollTextBackToStart();
